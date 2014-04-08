@@ -446,3 +446,28 @@ desc "Cleanup trailing whitespace"
 task :whitespace do
   system 'find . -not \( -name .svn -prune -o -name .git -prune \) -type f -print0 | xargs -0 sed -i "" -E "s/[[:space:]]*$//"'
 end
+
+namespace :bundler do
+  directory "bundler" do
+    sh "git clone --depth 1 https://github.com/bundler/bundler.git"
+  end
+
+  desc "Run the Bundler test suite"
+  task :spec => "bundler" do
+    Dir.chdir "bundler" do
+      ENV["RG"] = File.dirname __FILE__
+      sh "rake spec:deps"
+      sh "rake spec:rubygems:co"
+    end
+  end
+
+  desc "Run the Bundler test suite on travis"
+  task :travis => "bundler" do
+    Dir.chdir "bundler" do
+      ENV["RG"] = File.dirname __FILE__
+      ENV["RGV"] = "co"
+      sh "rake spec:travis:deps"
+      sh "rake spec:travis"
+    end
+  end
+end
